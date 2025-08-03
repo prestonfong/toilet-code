@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { kiloClient, KiloState } from './utils/webClient';
 import { Terminal } from './components/Terminal';
 import { EnhancedFileExplorer } from './components/EnhancedFileExplorer';
+import ComprehensiveSettingsPanel from './components/ComprehensiveSettingsPanel';
 import './App.css';
 
 interface Message {
@@ -29,11 +30,6 @@ function App() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [currentPath, setCurrentPath] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [apiSettings, setApiSettings] = useState({
-    provider: 'anthropic',
-    apiKey: '',
-    model: 'claude-3-5-sonnet-20241022'
-  });
   const [activeTab, setActiveTab] = useState<'chat' | 'files' | 'terminal'>('chat');
   const [activeTerminal] = useState<string>('main');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -189,23 +185,6 @@ function App() {
     }
   };
 
-  const handleSaveApiSettings = async () => {
-    if (!apiSettings.apiKey.trim()) {
-      addSystemMessage('API key is required', 'error');
-      return;
-    }
-
-    try {
-      await kiloClient.setApiProvider(
-        apiSettings.provider,
-        apiSettings.apiKey,
-        apiSettings.model
-      );
-    } catch (error) {
-      addSystemMessage(`Failed to set API provider: ${error}`, 'error');
-    }
-  };
-
   const formatTimestamp = (date: Date) => {
     return date.toLocaleTimeString();
   };
@@ -230,48 +209,12 @@ function App() {
       </header>
 
       <div className="app-content">
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="settings-panel">
-            <h3>API Settings</h3>
-            <div className="setting-group">
-              <label>Provider:</label>
-              <select 
-                value={apiSettings.provider} 
-                onChange={(e) => setApiSettings(prev => ({ ...prev, provider: e.target.value }))}
-              >
-                <option value="anthropic">Anthropic (Claude)</option>
-                <option value="openai">OpenAI (GPT)</option>
-              </select>
-            </div>
-            <div className="setting-group">
-              <label>API Key:</label>
-              <input
-                type="password"
-                value={apiSettings.apiKey}
-                onChange={(e) => setApiSettings(prev => ({ ...prev, apiKey: e.target.value }))}
-                placeholder="Enter your API key"
-              />
-            </div>
-            <div className="setting-group">
-              <label>Model:</label>
-              <input
-                type="text"
-                value={apiSettings.model}
-                onChange={(e) => setApiSettings(prev => ({ ...prev, model: e.target.value }))}
-                placeholder="e.g., claude-3-5-sonnet-20241022"
-              />
-            </div>
-            <div className="setting-actions">
-              <button onClick={handleSaveApiSettings} className="save-settings">
-                Save Settings
-              </button>
-              <button onClick={() => setShowSettings(false)} className="cancel-settings">
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Comprehensive Settings Panel */}
+        <ComprehensiveSettingsPanel
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          targetSection="providers"
+        />
 
         <div className="main-content">
           {/* Tab Navigation */}

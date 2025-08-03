@@ -152,10 +152,21 @@ export class KiloWebClient {
   }
 
   async listFiles(dirPath: string = '') {
+    console.log('🐛 [DEBUG] webClient.listFiles() - Sending WebSocket message:', { type: 'listFiles', dirPath });
+    console.log('🐛 [DEBUG] This will NOT work - server expects HTTP GET /api/files');
     this.send({
       type: 'listFiles',
       dirPath
     });
+  }
+
+  // 🐛 [DEBUG] Missing HTTP method for file listing - should be:
+  async listFilesHTTP(dirPath: string = '') {
+    console.log('🐛 [DEBUG] listFilesHTTP() - Making HTTP request to /api/files');
+    const url = `/api/files${dirPath ? `?path=${encodeURIComponent(dirPath)}` : ''}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
   }
 
   async createFile(filePath: string, content: string = '') {
@@ -263,6 +274,68 @@ export class KiloWebClient {
     this.send({
       type: 'terminal-destroy',
       terminalId
+    });
+  }
+
+  // Settings methods
+  async getSettings() {
+    this.send({
+      type: 'settingsGet'
+    });
+  }
+
+  async updateSettings(settings: any) {
+    this.send({
+      type: 'settingsUpdate',
+      data: settings
+    });
+  }
+
+  async saveProviderProfile(name: string, config: any) {
+    this.send({
+      type: 'settingsProviderProfileSave',
+      data: { name, config }
+    });
+  }
+
+  async deleteProviderProfile(name: string) {
+    this.send({
+      type: 'settingsProviderProfileDelete',
+      data: { name }
+    });
+  }
+
+  async setCurrentProvider(name: string) {
+    this.send({
+      type: 'settingsProviderSetCurrent',
+      data: { name }
+    });
+  }
+
+  async updateGlobalSettings(settings: any) {
+    this.send({
+      type: 'settingsGlobalUpdate',
+      data: settings
+    });
+  }
+
+  async saveModeConfig(config: any) {
+    this.send({
+      type: 'settingsModeConfigSave',
+      data: config
+    });
+  }
+
+  async exportSettings() {
+    this.send({
+      type: 'settingsExport'
+    });
+  }
+
+  async importSettings(data: any, options: any = {}) {
+    this.send({
+      type: 'settingsImport',
+      data: { data, options }
     });
   }
 

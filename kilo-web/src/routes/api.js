@@ -219,23 +219,74 @@ router.get('/download/:path(*)', async (req, res) => {
   }
 });
 
-// Terminal/command execution placeholder
-router.post('/execute', (req, res) => {
-  // TODO: Implement command execution
-  res.json({
-    message: 'Command execution endpoint - not yet implemented',
-    command: req.body.command,
-    output: 'Command execution not yet implemented'
-  });
+// Tool execution endpoints
+router.get('/tools', (req, res) => {
+  try {
+    // Get toolRegistry from app locals (set by server.js)
+    const toolRegistry = req.app.locals.toolRegistry;
+    if (!toolRegistry) {
+      return res.status(503).json({ error: 'Tool registry not initialized' });
+    }
+    
+    const tools = toolRegistry.getAvailableTools();
+    res.json({ success: true, tools });
+  } catch (error) {
+    console.error('Error getting tools:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Extension management placeholder
-router.get('/extensions', (req, res) => {
-  // TODO: Implement extension listing
-  res.json({
-    message: 'Extension management endpoint - not yet implemented',
-    extensions: []
-  });
+router.post('/tools/execute', async (req, res) => {
+  try {
+    const toolRegistry = req.app.locals.toolRegistry;
+    if (!toolRegistry) {
+      return res.status(503).json({ error: 'Tool registry not initialized' });
+    }
+    
+    const { tool, parameters } = req.body;
+    if (!tool) {
+      return res.status(400).json({ error: 'Missing tool name' });
+    }
+    
+    if (!parameters) {
+      return res.status(400).json({ error: 'Missing tool parameters' });
+    }
+    
+    const result = await toolRegistry.executeTool(tool, parameters);
+    const formattedResult = toolRegistry.formatToolResult(result);
+    
+    res.json({
+      success: true,
+      result: formattedResult,
+      raw_result: result
+    });
+    
+  } catch (error) {
+    console.error('Error executing tool:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Terminal/command execution through tools
+router.post('/execute', async (req, res) => {
+  try {
+    const toolRegistry = req.app.locals.toolRegistry;
+    if (!toolRegistry) {
+      return res.status(503).json({ error: 'Tool registry not initialized' });
+    }
+    
+    const { command, cwd } = req.body;
+    if (!command) {
+      return res.status(400).json({ error: 'Missing command' });
+    }
+    
+    const result = await toolRegistry.executeTool('execute_command', { command, cwd });
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Error executing command:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;

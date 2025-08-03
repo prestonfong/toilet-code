@@ -23,6 +23,12 @@
     flex-direction: column;
 }
 
+.settings-modal.large {
+    width: 800px;
+    max-width: 95vw;
+    max-height: 90vh;
+}
+
 .settings-header {
     display: flex;
     justify-content: space-between;
@@ -57,10 +63,58 @@
     border-radius: 4px;
 }
 
+.settings-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--vscode-panel-border, #3c3c3c);
+    background: var(--vscode-tab-inactiveBackground, #2d2d30);
+}
+
+.settings-tabs button {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    color: var(--vscode-tab-inactiveForeground, #969696);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.settings-tabs button:hover {
+    background: var(--vscode-tab-hoverBackground, #1e1e1e);
+    color: var(--vscode-tab-activeForeground, #ffffff);
+}
+
+.settings-tabs button.active {
+    background: var(--vscode-tab-activeBackground, #1e1e1e);
+    color: var(--vscode-tab-activeForeground, #ffffff);
+    border-bottom-color: var(--vscode-focusBorder, #007acc);
+}
+
 .settings-content {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+}
+
+.settings-tab-content {
+    max-width: 100%;
+}
+
+.settings-section {
+    margin-bottom: 30px;
+}
+
+.settings-section h3 {
+    margin: 0 0 8px 0;
+    color: var(--vscode-foreground, #cccccc);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.settings-section > p {
+    margin: 0 0 20px 0;
+    color: var(--vscode-descriptionForeground, #969696);
+    font-size: 14px;
 }
 
 .loading {
@@ -106,6 +160,219 @@
 
 .setting-group input[type="number"] {
     max-width: 150px;
+}
+
+.setting-group.checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.setting-group.checkbox label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.setting-group.checkbox input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+.setting-group textarea {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--vscode-input-background, #3c3c3c);
+    border: 1px solid var(--vscode-input-border, #3c3c3c);
+    border-radius: 4px;
+    color: var(--vscode-input-foreground, #cccccc);
+    font-size: 14px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.setting-group textarea:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder, #007acc);
+    box-shadow: 0 0 0 1px var(--vscode-focusBorder, #007acc);
+}
+
+/* Provider profile styles */
+.provider-profiles {
+    margin-bottom: 20px;
+}
+
+.provider-profile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid var(--vscode-panel-border, #3c3c3c);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: var(--vscode-editor-background, #1e1e1e);
+}
+
+.provider-profile.active {
+    border-color: var(--vscode-focusBorder, #007acc);
+    background: var(--vscode-list-activeSelectionBackground, #094771);
+}
+
+.profile-info h4 {
+    margin: 0 0 4px 0;
+    color: var(--vscode-foreground, #cccccc);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.profile-info p {
+    margin: 0;
+    color: var(--vscode-descriptionForeground, #969696);
+    font-size: 12px;
+}
+
+.current-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--vscode-badge-background, #007acc);
+    color: var(--vscode-badge-foreground, #ffffff);
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.profile-actions button {
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-button-border, transparent);
+    cursor: pointer;
+    min-width: auto;
+}
+
+.profile-actions button:not(.danger) {
+    background: var(--vscode-button-secondaryBackground, #3c3c3c);
+    color: var(--vscode-button-secondaryForeground, #cccccc);
+}
+
+.profile-actions button.danger {
+    background: var(--vscode-inputValidation-errorBackground, #5A1D1D);
+    color: var(--vscode-inputValidation-errorForeground, #ffffff);
+    border-color: var(--vscode-inputValidation-errorBorder, #BE1100);
+}
+
+.add-profile-btn {
+    padding: 8px 16px;
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #ffffff);
+    border: 1px solid var(--vscode-button-border, transparent);
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.add-profile-btn:hover {
+    background: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+.new-profile-form {
+    padding: 16px;
+    border: 1px solid var(--vscode-panel-border, #3c3c3c);
+    border-radius: 6px;
+    background: var(--vscode-input-background, #3c3c3c);
+    margin-bottom: 20px;
+}
+
+/* Mode config styles */
+.mode-configs {
+    margin-bottom: 20px;
+}
+
+.mode-config {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border: 1px solid var(--vscode-panel-border, #3c3c3c);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: var(--vscode-editor-background, #1e1e1e);
+}
+
+.mode-info h4 {
+    margin: 0 0 4px 0;
+    color: var(--vscode-foreground, #cccccc);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mode-info p {
+    margin: 0;
+    color: var(--vscode-descriptionForeground, #969696);
+    font-size: 12px;
+}
+
+.mode-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.mode-actions button {
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-button-border, transparent);
+    cursor: pointer;
+    min-width: auto;
+}
+
+.mode-actions button.secondary {
+    background: var(--vscode-button-secondaryBackground, #3c3c3c);
+    color: var(--vscode-button-secondaryForeground, #cccccc);
+}
+
+/* ProviderConfig specific styles */
+.provider-config {
+    width: 100%;
+}
+
+.current-provider-status {
+    padding: 12px 16px;
+    background: var(--vscode-list-activeSelectionBackground, #094771);
+    border: 1px solid var(--vscode-focusBorder, #007acc);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.status-info {
+    color: var(--vscode-foreground, #cccccc);
+    font-size: 14px;
+}
+
+.profile-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.profile-form-actions button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-button-border, transparent);
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 80px;
 }
 
 .settings-footer {
