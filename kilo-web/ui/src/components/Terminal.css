@@ -1,0 +1,81 @@
+.terminal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #2d2d30;
+  border-bottom: 1px solid #333;
+  color: #cccccc;
+  font-size: 12px;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.terminal-title {
+  font-weight: 500;
+}
+
+.terminal-close {
+  background: none;
+  border: none;
+  color: #cccccc;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  transition: background-color 0.15s ease;
+}
+
+.terminal-close:hover {
+  background-color: #3e3e42;
+}
+
+.terminal-close:active {
+  background-color: #525252;
+}
+
+.terminal-content {
+  flex: 1;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.terminal-content .xterm {
+  height: 100% !important;
+}
+
+.terminal-content .xterm-viewport {
+  overflow-y: auto;
+}
+
+.terminal-content .xterm-screen {
+  padding-right: 10px;
+}
+
+/* Custom scrollbar for terminal */
+.terminal-content .xterm-viewport::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-content .xterm-viewport::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.terminal-content .xterm-viewport::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.terminal-content .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}

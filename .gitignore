@@ -1,0 +1,166 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# Compiled TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build / generate output
+.nuxt
+dist
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# VS Code settings
+.vscode/
+*.code-workspace
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+test-results/
+playwright-report/
+test-results.xml
+
+# Uploads and workspace directories (may contain sensitive data)
+uploads/
+workspace/
+
+# Storybook build outputs
+storybook-static/
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel
+
+# TypeScript incremental compilation
+*.tsbuildinfo
+
+# Vite cache
+.vite/
+
+# Rollup cache
+.rollup.cache/
+
+# Jest cache
+.jest-cache/
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Stylelint cache
+.stylelintcache
+
+# Package manager lockfiles (optional - uncomment if you want to exclude them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Generated theme styles
+generated-theme-styles/
+
+# Playwright screenshots and test results
+apps/playwright-e2e/test-results/
+apps/playwright-e2e/playwright-report/
+
+# Build artifacts
+*.vsix
