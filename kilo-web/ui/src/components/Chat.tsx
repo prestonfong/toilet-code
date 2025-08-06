@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Settings from './Settings';
-import ModeSelector from './ModeSelector';
+import TaskHistoryManager from './TaskHistoryManager';
+import { Mode, DEFAULT_MODES } from '../types/modes';
 import './Chat.css';
 
 interface ChatMessage {
@@ -37,12 +38,6 @@ interface ConversationHistoryItem {
   };
 }
 
-interface ModeInfo {
-  slug: string;
-  name: string;
-  description: string;
-  icon: string;
-}
 
 interface ChatProps {
   webSocket: WebSocket | null;
@@ -54,21 +49,17 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTaskHistory, setShowTaskHistory] = useState(false);
   const [streamEnabled, setStreamEnabled] = useState(true);
   const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null);
-  const [currentMode, setCurrentMode] = useState<ModeInfo>({
-    slug: 'code',
-    name: 'Code',
-    description: 'Write, modify, and refactor code',
-    icon: '💻'
-  });
-  const [availableModes, setAvailableModes] = useState<ModeInfo[]>([]);
+  const [currentMode, setCurrentMode] = useState<Mode>(DEFAULT_MODES[1]); // Default to 'code' mode
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<ConversationHistoryItem[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [, setContextFiles] = useState<string[]>([]);
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -81,7 +72,7 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
 
   useEffect(() => {
     if (webSocket) {
-      const handleMessage = (event: MessageEvent) => {
+      const handleMessage = async (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
           
@@ -109,6 +100,11 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
             if (data.state.contextFiles) {
               setContextFiles(data.state.contextFiles);
             }
+            
+            // Set task ID from state if available
+            if (data.state.currentTaskId) {
+              setCurrentTaskId(data.state.currentTaskId);
+            }
           } else if (data.type === 'cline_message' && data.data) {
             const msg = data.data;
             if (msg.partial) {
@@ -124,7 +120,7 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
               });
             } else {
               // Handle complete message
-              setMessages(prev => [...prev, {
+              const newMessage = {
                 id: msg.id,
                 type: msg.type,
                 text: msg.text,
@@ -133,9 +129,30 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
                 metadata: msg.metadata,
                 editHistory: msg.editHistory,
                 lastModified: msg.lastModified
-              }]);
+              };
+              
+              setMessages(prev => [...prev, newMessage]);
               setStreamingMessage(null);
               setIsLoading(false);
+              
+              // Track assistant message in task history
+              if (currentTaskId && msg.type === 'assistant') {
+                try {
+                  await fetch(`/api/task-history/${currentTaskId}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      type: 'assistant',
+                      content: msg.text,
+                      timestamp: msg.timestamp,
+                      mode: msg.mode || currentMode.slug,
+                      metadata: msg.metadata
+                    })
+                  });
+                } catch (error) {
+                  console.error('Error tracking assistant message:', error);
+                }
+              }
             }
           } else if (data.type === 'messageEdited' && data.data) {
             // Handle message edit
@@ -164,15 +181,10 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
             setIsLoading(false);
           } else if (data.type === 'modeChanged' && data.data) {
             // Handle mode change notifications
-            setCurrentMode({
-              slug: data.data.slug,
-              name: data.data.name,
-              description: data.data.description,
-              icon: data.data.icon || '🤖'
-            });
-          } else if (data.type === 'modesAvailable' && data.data) {
-            // Handle available modes list
-            setAvailableModes(data.data);
+            const newMode = DEFAULT_MODES.find(mode => mode.slug === data.data.slug);
+            if (newMode) {
+              setCurrentMode(newMode);
+            }
           } else if (data.type === 'providerChanged') {
             console.log('AI provider changed:', data.data?.provider);
           } else if (data.type === 'error') {
@@ -205,15 +217,60 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
     }
   }, [webSocket, isConnected]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim() || !isConnected || isLoading) return;
 
+    const userMessage = input.trim();
     const messageType = streamEnabled ? 'streamingMessage' : 'newTask';
+    
+    // Start a new task if this is the first message in a new conversation
+    if (!currentTaskId && messages.length === 0) {
+      try {
+        const response = await fetch('/api/task-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'start',
+            message: userMessage,
+            mode: currentMode.slug,
+            metadata: {
+              conversationId: currentConversationId
+            }
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setCurrentTaskId(result.taskId);
+        }
+      } catch (error) {
+        console.error('Error starting task tracking:', error);
+      }
+    }
+
+    // Track the user message
+    if (currentTaskId) {
+      try {
+        await fetch(`/api/task-history/${currentTaskId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'user',
+            content: userMessage,
+            timestamp: Date.now(),
+            mode: currentMode.slug
+          })
+        });
+      } catch (error) {
+        console.error('Error tracking user message:', error);
+      }
+    }
     
     webSocket?.send(JSON.stringify({
       type: messageType,
-      text: input.trim(),
-      mode: currentMode.slug
+      text: userMessage,
+      mode: currentMode.slug,
+      taskId: currentTaskId
     }));
     
     setInput('');
@@ -221,15 +278,6 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
     setStreamingMessage(null);
   };
 
-  const handleModeSwitch = (modeSlug: string, reason?: string) => {
-    if (!webSocket || !isConnected) return;
-    
-    webSocket.send(JSON.stringify({
-      type: 'switchMode',
-      mode: modeSlug,
-      reason: reason
-    }));
-  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -238,17 +286,52 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
     }
   };
 
-  const clearHistory = () => {
+  const clearHistory = async () => {
+    // Complete current task if active
+    if (currentTaskId) {
+      try {
+        await fetch(`/api/task-history/${currentTaskId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'complete',
+            summary: generateTaskSummary()
+          })
+        });
+      } catch (error) {
+        console.error('Error completing task:', error);
+      }
+    }
+    
     setMessages([]);
     setStreamingMessage(null);
     setCurrentConversationId(null);
+    setCurrentTaskId(null);
     setContextFiles([]);
+    
     // Send clear command to backend
     if (webSocket && isConnected) {
       webSocket.send(JSON.stringify({
         type: 'clearTask'
       }));
     }
+  };
+
+  const generateTaskSummary = () => {
+    if (messages.length === 0) return 'Empty conversation';
+    
+    const firstUserMessage = messages.find(m => m.type === 'user');
+    const lastAssistantMessage = messages.filter(m => m.type === 'assistant').pop();
+    
+    let summary = '';
+    if (firstUserMessage) {
+      summary += `Started with: "${firstUserMessage.text.substring(0, 100)}..."`;
+    }
+    if (lastAssistantMessage) {
+      summary += ` Completed with: "${lastAssistantMessage.text.substring(0, 100)}..."`;
+    }
+    
+    return summary || 'Conversation completed';
   };
 
   const startEditMessage = (messageId: string, currentText: string) => {
@@ -337,6 +420,13 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
             📚 History
           </button>
           <button
+            onClick={() => setShowTaskHistory(true)}
+            className="task-history-button"
+            title="Task History & Analytics"
+          >
+            📊 Tasks
+          </button>
+          <button
             onClick={() => setShowSettings(true)}
             className="settings-button"
             title="AI Provider Settings"
@@ -391,11 +481,6 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
         </div>
       )}
 
-      <ModeSelector
-        currentMode={currentMode.slug}
-        modes={availableModes}
-        onModeChange={handleModeSwitch}
-      />
       
       <div className="messages-container">
         {messages.map((message, index) => (
@@ -510,9 +595,16 @@ const Chat: React.FC<ChatProps> = ({ webSocket, isConnected }) => {
         </button>
       </div>
 
-      <Settings 
+      <Settings
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
+      />
+
+      <TaskHistoryManager
+        webSocket={webSocket}
+        isConnected={isConnected}
+        isOpen={showTaskHistory}
+        onClose={() => setShowTaskHistory(false)}
       />
     </div>
   );

@@ -174,6 +174,73 @@ class AnthropicProvider {
     }
 
     /**
+     * Get available models for Anthropic provider
+     */
+    getAvailableModels() {
+        return [
+            'claude-3-5-sonnet-20241022',
+            'claude-3-5-haiku-20241022',
+            'claude-3-opus-20240229',
+            'claude-3-sonnet-20240229',
+            'claude-3-haiku-20240307'
+        ];
+    }
+
+    /**
+     * Validate provider settings (optional API key for Anthropic)
+     */
+    validateSettings(settings) {
+        const errors = [];
+        
+        // API key is optional for Anthropic - can work without one in some configurations
+        if (settings.apiKey && typeof settings.apiKey !== 'string') {
+            errors.push('API key must be a string if provided');
+        }
+        
+        // Validate model if provided
+        if (settings.model && !this.getAvailableModels().includes(settings.model)) {
+            errors.push(`Invalid model: ${settings.model}. Available models: ${this.getAvailableModels().join(', ')}`);
+        }
+        
+        // Validate temperature
+        if (settings.temperature !== undefined) {
+            if (typeof settings.temperature !== 'number' || settings.temperature < 0 || settings.temperature > 2) {
+                errors.push('Temperature must be a number between 0 and 2');
+            }
+        }
+        
+        return {
+            valid: errors.length === 0,
+            errors
+        };
+    }
+
+    /**
+     * Get autofill suggestions for provider configuration
+     */
+    getAutofillSuggestions(useCase = 'general') {
+        const suggestions = {
+            general: {
+                model: 'claude-3-5-sonnet-20241022',
+                temperature: 0.7,
+                maxTokens: 4096
+            },
+            coding: {
+                model: 'claude-3-5-sonnet-20241022',
+                temperature: 0.2,
+                maxTokens: 4096
+            },
+            creative: {
+                model: 'claude-3-opus-20240229',
+                temperature: 1.0,
+                maxTokens: 4096
+            }
+        };
+        
+        return suggestions[useCase] || suggestions.general;
+    }
+
+    /**
      * Count tokens (simplified implementation)
      */
     async countTokens(content) {

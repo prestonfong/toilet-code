@@ -172,6 +172,73 @@ class OpenAIProvider {
     }
 
     /**
+     * Get available models for OpenAI provider
+     */
+    getAvailableModels() {
+        return [
+            'gpt-4o',
+            'gpt-4o-mini',
+            'gpt-4-turbo',
+            'gpt-4',
+            'gpt-3.5-turbo'
+        ];
+    }
+
+    /**
+     * Validate provider settings (API key required for OpenAI)
+     */
+    validateSettings(settings) {
+        const errors = [];
+        
+        // API key is required for OpenAI
+        if (!settings.apiKey || typeof settings.apiKey !== 'string' || settings.apiKey.trim() === '') {
+            errors.push('API key is required for OpenAI');
+        }
+        
+        // Validate model if provided
+        if (settings.model && !this.getAvailableModels().includes(settings.model)) {
+            errors.push(`Invalid model: ${settings.model}. Available models: ${this.getAvailableModels().join(', ')}`);
+        }
+        
+        // Validate temperature
+        if (settings.temperature !== undefined) {
+            if (typeof settings.temperature !== 'number' || settings.temperature < 0 || settings.temperature > 2) {
+                errors.push('Temperature must be a number between 0 and 2');
+            }
+        }
+        
+        return {
+            valid: errors.length === 0,
+            errors
+        };
+    }
+
+    /**
+     * Get autofill suggestions for provider configuration
+     */
+    getAutofillSuggestions(useCase = 'general') {
+        const suggestions = {
+            general: {
+                model: 'gpt-4o',
+                temperature: 0.7,
+                maxTokens: 4096
+            },
+            coding: {
+                model: 'gpt-4o',
+                temperature: 0.2,
+                maxTokens: 4096
+            },
+            creative: {
+                model: 'gpt-4o',
+                temperature: 1.0,
+                maxTokens: 4096
+            }
+        };
+        
+        return suggestions[useCase] || suggestions.general;
+    }
+
+    /**
      * Count tokens (simplified implementation)
      */
     async countTokens(content) {

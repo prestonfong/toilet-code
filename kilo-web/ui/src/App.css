@@ -25,7 +25,7 @@
 .header-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .connection-status {
@@ -147,6 +147,39 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.mode-context {
+  background: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+  padding: 8px 16px;
+  flex-shrink: 0;
+}
+
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-badge {
+  background: #007acc;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mode-role {
+  color: #cccccc;
+  font-size: 13px;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
 }
 
 .messages {

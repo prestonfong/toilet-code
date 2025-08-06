@@ -3,6 +3,11 @@ import { kiloClient, KiloState } from './utils/webClient';
 import { Terminal } from './components/Terminal';
 import { EnhancedFileExplorer } from './components/EnhancedFileExplorer';
 import ComprehensiveSettingsPanel from './components/ComprehensiveSettingsPanel';
+import ModeSelector from './components/ModeSelector';
+import WorkflowManager from './components/WorkflowManager';
+import IOSPWADetector from './components/IOSPWADetector';
+import { Mode, DEFAULT_MODES } from './types/modes';
+import pushNotificationService from './utils/pushNotificationService';
 import './App.css';
 
 interface Message {
@@ -30,14 +35,17 @@ function App() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [currentPath, setCurrentPath] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'files' | 'terminal'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'files' | 'terminal' | 'workflows'>('chat');
   const [activeTerminal] = useState<string>('main');
+  const [currentMode, setCurrentMode] = useState<Mode>(DEFAULT_MODES[1]); // Default to 'code' mode
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     initializeConnection();
+    initializePushNotifications();
     return () => {
       kiloClient.disconnect();
+      pushNotificationService.destroy();
     };
   }, []);
 
@@ -62,6 +70,8 @@ function App() {
       kiloClient.on('fileList', handleFileList);
       kiloClient.on('taskStarted', handleTaskStarted);
       kiloClient.on('apiProviderSet', handleApiProviderSet);
+      kiloClient.on('modeChanged', handleModeChanged);
+      kiloClient.on('currentMode', handleCurrentMode);
       
       // Request initial state
       await kiloClient.requestState();
@@ -69,6 +79,38 @@ function App() {
     } catch (error) {
       console.error('Failed to connect:', error);
       addSystemMessage(`Failed to connect to server: ${error}`);
+    }
+  };
+
+  const initializePushNotifications = async () => {
+    try {
+      const initialized = await pushNotificationService.initialize();
+      if (initialized) {
+        console.log('✅ Push notification service initialized');
+        
+        // Set up event listeners
+        pushNotificationService.on('error', (data) => {
+          console.error('Push notification error:', data);
+          addSystemMessage(`Push notification error: ${data.error}`, 'error');
+        });
+
+        pushNotificationService.on('subscriptionChanged', (data) => {
+          const status = data.subscribed ? 'enabled' : 'disabled';
+          addSystemMessage(`Push notifications ${status}`, 'system');
+        });
+
+        pushNotificationService.on('notificationEvent', (data) => {
+          console.log('Notification event:', data);
+        });
+
+        pushNotificationService.on('updateAvailable', () => {
+          addSystemMessage('App update available. Refresh to update.', 'system');
+        });
+      } else {
+        console.warn('⚠️ Push notifications not available');
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize push notifications:', error);
     }
   };
 
@@ -120,6 +162,21 @@ function App() {
   const handleApiProviderSet = (data: { provider: string }) => {
     addSystemMessage(`API provider set to ${data.provider}`, 'system');
     setShowSettings(false);
+  };
+
+  const handleModeChanged = (data: { currentMode: string; previousMode?: string }) => {
+    const newMode = DEFAULT_MODES.find(mode => mode.slug === data.currentMode);
+    if (newMode) {
+      setCurrentMode(newMode);
+      addSystemMessage(`Switched to ${newMode.name} mode: ${newMode.description}`, 'system');
+    }
+  };
+
+  const handleCurrentMode = (data: { mode: string }) => {
+    const mode = DEFAULT_MODES.find(m => m.slug === data.mode);
+    if (mode) {
+      setCurrentMode(mode);
+    }
   };
 
   const addSystemMessage = (content: string, type: 'system' | 'error' = 'system') => {
@@ -185,15 +242,44 @@ function App() {
     }
   };
 
+  const handleModeChange = (mode: Mode) => {
+    if (isConnected && mode.slug !== currentMode.slug) {
+      // Send mode switch message to backend
+      kiloClient.send({
+        type: 'switchMode',
+        mode: mode.slug
+      });
+      
+      // Optimistically update the UI
+      setCurrentMode(mode);
+    }
+  };
+
+  // Request current mode on connection
+  useEffect(() => {
+    if (isConnected) {
+      kiloClient.send({
+        type: 'getCurrentMode'
+      });
+    }
+  }, [isConnected]);
+
   const formatTimestamp = (date: Date) => {
     return date.toLocaleTimeString();
   };
 
   return (
     <div className="app">
+      <IOSPWADetector />
+      
       <header className="app-header">
         <h1>Kilo Code Web</h1>
         <div className="header-controls">
+          <ModeSelector
+            currentMode={currentMode}
+            onModeChange={handleModeChange}
+            isConnected={isConnected}
+          />
           <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
             {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
           </span>
@@ -214,6 +300,8 @@ function App() {
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
           targetSection="providers"
+          webSocket={kiloClient.webSocket}
+          isConnected={isConnected}
         />
 
         <div className="main-content">
@@ -237,12 +325,24 @@ function App() {
             >
               💻 Terminal
             </button>
+            <button
+              className={`tab ${activeTab === 'workflows' ? 'active' : ''}`}
+              onClick={() => setActiveTab('workflows')}
+            >
+              ⚙️ Workflows
+            </button>
           </div>
 
           {/* Tab Content */}
           <div className="tab-content">
             {activeTab === 'chat' && (
               <div className="chat-container">
+                <div className="mode-context">
+                  <div className="mode-indicator">
+                    <span className="mode-badge">{currentMode.name}</span>
+                    <span className="mode-role">{currentMode.description}</span>
+                  </div>
+                </div>
                 <div className="messages">
                   {messages.map((message) => (
                     <div key={message.id} className={`message ${message.type}`}>
@@ -327,6 +427,15 @@ function App() {
                 <Terminal
                   terminalId={activeTerminal}
                   className="app-terminal"
+                />
+              </div>
+            )}
+
+            {activeTab === 'workflows' && (
+              <div className="workflow-container">
+                <WorkflowManager
+                  webSocket={kiloClient.webSocket}
+                  isConnected={isConnected}
                 />
               </div>
             )}

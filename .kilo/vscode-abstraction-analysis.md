@@ -1,4 +1,4 @@
-# Kilo Code VS Code Extension Web Migration Analysis
+            # Kilo Code VS Code Extension Web Migration Analysis
 
 ## Executive Summary
 

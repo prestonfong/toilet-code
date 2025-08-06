@@ -1,0 +1,133 @@
+.ios-pwa-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--background-primary);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  animation: slideDown 0.3s ease-out;
+}
+
+.ios-pwa-content {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.ios-pwa-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ios-pwa-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ios-pwa-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ios-pwa-text p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.ios-pwa-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.install-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.install-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.dismiss-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.dismiss-btn:hover {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .ios-pwa-content {
+    padding: 10px 12px;
+  }
+  
+  .ios-pwa-text h4 {
+    font-size: 15px;
+  }
+  
+  .ios-pwa-text p {
+    font-size: 13px;
+  }
+  
+  .install-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Dark mode */
+[data-theme="dark"] .ios-pwa-banner {
+  background: var(--background-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+/* Light mode specific adjustments */
+[data-theme="light"] .ios-pwa-banner {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}

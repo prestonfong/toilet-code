@@ -19,7 +19,7 @@ export class KiloWebClient {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
 
-  constructor(private url: string = `ws://${window.location.host}`) {}
+  constructor(private url: string = `ws://${window.location.hostname}:5000`) {}
 
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -339,6 +339,569 @@ export class KiloWebClient {
     });
   }
 
+  // Comprehensive Settings Import/Export Methods
+
+  async exportSettingsHTTP(options: any = {}) {
+    try {
+      const response = await fetch('/api/settings/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error exporting settings:', error);
+      throw error;
+    }
+  }
+
+  async importSettingsHTTP(importData: any, options: any = {}) {
+    try {
+      const response = await fetch('/api/settings/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ importData, options })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error importing settings:', error);
+      throw error;
+    }
+  }
+
+  async createImportPreview(importData: any, password?: string) {
+    try {
+      const response = await fetch('/api/settings/import/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ importData, password })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating import preview:', error);
+      throw error;
+    }
+  }
+
+  async validateImportData(importData: any, password?: string) {
+    try {
+      const response = await fetch('/api/settings/import/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ importData, password })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error validating import data:', error);
+      throw error;
+    }
+  }
+
+  async createSettingsBackup() {
+    try {
+      const response = await fetch('/api/settings/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating settings backup:', error);
+      throw error;
+    }
+  }
+
+  async restoreFromBackup(backupData: any) {
+    try {
+      const response = await fetch('/api/settings/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ backupData })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error restoring from backup:', error);
+      throw error;
+    }
+  }
+
+  async getExportFormats() {
+    try {
+      const response = await fetch('/api/settings/export/formats');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting export formats:', error);
+      throw error;
+    }
+  }
+
+  async getSettingsCategories() {
+    try {
+      const response = await fetch('/api/settings/categories');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting settings categories:', error);
+      throw error;
+    }
+  }
+
+  // Mode switching methods
+  async switchMode(modeSlug: string) {
+    this.send({
+      type: 'switchMode',
+      modeSlug
+    });
+  }
+
+  async getCurrentMode() {
+    this.send({
+      type: 'getCurrentMode'
+    });
+  }
+
+  // MCP Server Management methods
+  async getMCPServers() {
+    this.send({
+      type: 'mcpGetServers'
+    });
+  }
+
+  async getMCPServerStatuses() {
+    this.send({
+      type: 'mcpGetServerStatuses'
+    });
+  }
+
+  async getMCPTools() {
+    this.send({
+      type: 'mcpGetTools'
+    });
+  }
+
+  async getMCPResources() {
+    this.send({
+      type: 'mcpGetResources'
+    });
+  }
+
+  async getMCPHealth() {
+    this.send({
+      type: 'mcpGetHealth'
+    });
+  }
+
+  async addMCPServer(config: any) {
+    this.send({
+      type: 'mcpAddServer',
+      config
+    });
+  }
+
+  async updateMCPServer(serverId: string, config: any) {
+    this.send({
+      type: 'mcpUpdateServer',
+      serverId,
+      config
+    });
+  }
+
+  async deleteMCPServer(serverId: string) {
+    this.send({
+      type: 'mcpDeleteServer',
+      serverId
+    });
+  }
+
+  async toggleMCPServer(serverId: string, enabled: boolean) {
+    this.send({
+      type: 'mcpToggleServer',
+      serverId,
+      enabled
+    });
+  }
+
+  async testMCPConnection(serverId: string) {
+    this.send({
+      type: 'mcpTestConnection',
+      serverId
+    });
+  }
+
+  async testMCPServerConfig(config: any) {
+    this.send({
+      type: 'mcpTestServerConfig',
+      config
+    });
+  }
+
+  async restartMCPServer(serverId: string) {
+    this.send({
+      type: 'mcpRestartServer',
+      serverId
+    });
+  }
+
+  async getMCPServerLogs(serverId: string, lines?: number) {
+    this.send({
+      type: 'mcpGetServerLogs',
+      serverId,
+      lines
+    });
+  }
+
+  async executeMCPTool(serverId: string, toolName: string, parameters: any) {
+    this.send({
+      type: 'mcpExecuteTool',
+      serverId,
+      toolName,
+      parameters
+    });
+  }
+
+  async accessMCPResource(serverId: string, uri: string) {
+    this.send({
+      type: 'mcpAccessResource',
+      serverId,
+      uri
+    });
+  }
+
+  async refreshMCPServerCapabilities(serverId: string) {
+    this.send({
+      type: 'mcpRefreshCapabilities',
+      serverId
+    });
+  }
+
+  async getMCPServerStats() {
+    this.send({
+      type: 'mcpGetStats'
+    });
+  }
+
+  // Provider Validation and Autofill Methods
+  
+  async validateProviderConfig(provider: string, config: any) {
+    try {
+      const response = await fetch('/api/settings/providers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, config })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error validating provider config:', error);
+      throw error;
+    }
+  }
+
+  async validateProviderField(provider: string, field: string, value: any) {
+    try {
+      const response = await fetch('/api/settings/providers/validate/field', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, field, value })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error validating provider field:', error);
+      throw error;
+    }
+  }
+
+  async getProviderSchema(provider: string) {
+    try {
+      const response = await fetch(`/api/settings/providers/${provider}/schema`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting provider schema:', error);
+      throw error;
+    }
+  }
+
+  async getAutofillConfig(provider: string, existingConfig: any = {}, useCase: string = 'general') {
+    try {
+      const response = await fetch('/api/settings/providers/autofill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, existingConfig, useCase })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting autofill config:', error);
+      throw error;
+    }
+  }
+
+  async getModelSuggestions(provider: string, useCase: string = 'general') {
+    try {
+      const response = await fetch(`/api/settings/providers/${provider}/models/suggestions?useCase=${useCase}`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting model suggestions:', error);
+      throw error;
+    }
+  }
+
+  async getFieldCompletions(provider: string, field: string, currentValue: string = '', context: any = {}) {
+    try {
+      const response = await fetch('/api/settings/providers/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, field, currentValue, context })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting field completions:', error);
+      throw error;
+    }
+  }
+
+  async getFieldHelp(provider: string, field: string) {
+    try {
+      const response = await fetch(`/api/settings/providers/${provider}/field/${field}/help`);
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting field help:', error);
+      throw error;
+    }
+  }
+
+  async testProviderConnection(provider: string, config: any) {
+    try {
+      const response = await fetch('/api/settings/providers/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, config })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error testing provider connection:', error);
+      throw error;
+    }
+  }
+
+  async getSupportedProviders() {
+    try {
+      const response = await fetch('/api/settings/providers/supported');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting supported providers:', error);
+      throw error;
+    }
+  }
+
+  // Comprehensive Settings Validation Methods
+  
+  async getSettingsHealth() {
+    try {
+      const response = await fetch('/api/settings/validation/health');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting settings health:', error);
+      throw error;
+    }
+  }
+
+  async validateAllSettings(options: any = {}) {
+    try {
+      const response = await fetch('/api/settings/validation/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error validating all settings:', error);
+      throw error;
+    }
+  }
+
+  async validateSettingsSection(section: string, data: any, options: any = {}) {
+    try {
+      const response = await fetch(`/api/settings/validation/validate/${section}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data, options })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Error validating ${section} settings:`, error);
+      throw error;
+    }
+  }
+
+  async getValidationSchemas() {
+    try {
+      const response = await fetch('/api/settings/validation/schemas');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting validation schemas:', error);
+      throw error;
+    }
+  }
+
+  async analyzeSettings(category: string, data: any) {
+    try {
+      const response = await fetch('/api/settings/validation/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, data })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Error analyzing settings for ${category}:`, error);
+      throw error;
+    }
+  }
+
+  async getValidationRules() {
+    try {
+      const response = await fetch('/api/settings/validation/rules');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting validation rules:', error);
+      throw error;
+    }
+  }
+
+  async performRealtimeValidation(category: string, field: string, value: any, context: any = {}) {
+    try {
+      const response = await fetch('/api/settings/validation/realtime', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, field, value, context })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error performing real-time validation:', error);
+      throw error;
+    }
+  }
+
+  // Settings Migration Methods
+  
+  async getMigrationStatus() {
+    try {
+      const response = await fetch('/api/settings/migration/status');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting migration status:', error);
+      throw error;
+    }
+  }
+
+  async executeMigration(options: any = {}) {
+    try {
+      const response = await fetch('/api/settings/migration/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options)
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error executing migration:', error);
+      throw error;
+    }
+  }
+
+  async getAvailableRollbacks() {
+    try {
+      const response = await fetch('/api/settings/migration/rollbacks');
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting available rollbacks:', error);
+      throw error;
+    }
+  }
+
+  async performRollback(backupPath: string) {
+    try {
+      const response = await fetch('/api/settings/migration/rollback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ backupPath })
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error performing rollback:', error);
+      throw error;
+    }
+  }
+
+  async createMigrationBackup() {
+    try {
+      const response = await fetch('/api/settings/migration/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating migration backup:', error);
+      throw error;
+    }
+  }
+
+  // Combined validation and migration health check
+  async performStartupHealthCheck() {
+    try {
+      const [healthResult, migrationResult] = await Promise.all([
+        this.getSettingsHealth(),
+        this.getMigrationStatus()
+      ]);
+      
+      return {
+        health: healthResult.health,
+        migration: migrationResult.migration,
+        overall: {
+          healthy: healthResult.health?.system?.healthy && !migrationResult.migration?.needed,
+          requiresAttention: !healthResult.health?.system?.healthy || migrationResult.migration?.needed,
+          migrationNeeded: migrationResult.migration?.needed || false,
+          validationErrors: healthResult.health?.validation?.errorCount || 0,
+          validationWarnings: healthResult.health?.validation?.warningCount || 0
+        }
+      };
+    } catch (error) {
+      console.error('Error performing startup health check:', error);
+      return {
+        health: null,
+        migration: null,
+        overall: {
+          healthy: false,
+          requiresAttention: true,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      };
+    }
+  }
+
+  // Convenience method for comprehensive settings validation
+  async runComprehensiveValidation() {
+    try {
+      const [validationResult, performanceAnalysis, securityAnalysis] = await Promise.all([
+        this.validateAllSettings({ includeSettings: false }),
+        this.analyzeSettings('performance', {}),
+        this.analyzeSettings('security', {})
+      ]);
+
+      return {
+        validation: validationResult.validation,
+        analysis: {
+          performance: performanceAnalysis.analysis,
+          security: securityAnalysis.analysis
+        },
+        summary: {
+          totalIssues: (validationResult.validation?.errors?.length || 0) + (validationResult.validation?.warnings?.length || 0),
+          criticalIssues: validationResult.validation?.errors?.length || 0,
+          warningIssues: validationResult.validation?.warnings?.length || 0,
+          isHealthy: validationResult.validation?.isValid || false
+        }
+      };
+    } catch (error) {
+      console.error('Error running comprehensive validation:', error);
+      throw error;
+    }
+  }
+
   disconnect() {
     if (this.ws) {
       this.ws.close();
@@ -348,6 +911,10 @@ export class KiloWebClient {
 
   get isConnected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  get webSocket(): WebSocket | null {
+    return this.ws;
   }
 }
 
